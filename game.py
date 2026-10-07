@@ -7,10 +7,17 @@ ZONE_TOP = ROWS - 6
 TICK, PLAYER_SPEED, BULLET_SPEED = 0.09, 260, 620
 MUSHROOM_HP = 4
 
+MUSHROOM_COLORS = {
+    4: (230, 90, 200),  # bright pink - full health
+    3: (220, 60, 120),  # rose
+    2: (190, 40, 50),   # red
+    1: (110, 20, 30),   # dark maroon - about to break
+}
+
 
 def mushroom_color(hp):
     """Return an (r, g, b) colour for a mushroom with the given hit points, or None for the default."""
-    pass
+    return MUSHROOM_COLORS.get(hp)
 
 
 def on_segment_hit(segment, score):
