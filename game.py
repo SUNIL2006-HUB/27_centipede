@@ -19,10 +19,30 @@ def mushroom_color(hp):
     """Return an (r, g, b) colour for a mushroom with the given hit points, or None for the default."""
     return MUSHROOM_COLORS.get(hp)
 
+SPARK_LIFE = 0.4
+sparks = []  # each spark is [x, y, vx, vy, time_left]
 
 def on_segment_hit(segment, score):
     """Called whenever a centipede segment is shot; add sparkles, sounds, or bonus points here."""
-    pass
+    x = segment.col * CELL + CELL // 2
+    y = segment.row * CELL + CELL // 2
+    for _ in range(12):
+        velocity = pygame.Vector2(random.uniform(60, 180), 0).rotate(random.uniform(0, 360))
+        sparks.append([x, y, velocity.x, velocity.y, SPARK_LIFE])
+
+
+def update_sparks(dt):
+    for spark in sparks:
+        spark[0] += spark[2] * dt
+        spark[1] += spark[3] * dt
+        spark[4] -= dt
+    sparks[:] = [spark for spark in sparks if spark[4] > 0]
+
+
+def draw_sparks(screen):
+    for x, y, _, _, life in sparks:
+        fade = life / SPARK_LIFE
+        pygame.draw.circle(screen, (255, int(60 + 180 * fade), int(120 * fade)), (int(x), int(y)), 2)
 
 
 def wave_speed_bonus(wave):
@@ -119,6 +139,7 @@ class Game:
         if keys[pygame.K_SPACE]:
             self.fire()
         self.update_bullet(dt)
+        update_sparks(dt)          # in Game.update
         self.timer += dt
         effective_tick = TICK / (wave_speed_bonus(self.wave) or 1)
         while self.timer >= effective_tick:
@@ -147,6 +168,8 @@ class Game:
             for index, segment in enumerate(chain):
                 center = (segment.col * CELL + CELL // 2, segment.row * CELL + CELL // 2)
                 pygame.draw.circle(screen, (240, 200, 60) if index == 0 else (80, 220, 90), center, CELL // 2)
+        
+        draw_sparks(screen)
         if self.bullet:
             pygame.draw.rect(screen, (255, 255, 255), (self.bullet.x - 1, self.bullet.y - 6, 3, 10))
         if self.invulnerable <= 0 or int(self.invulnerable * 10) % 2 == 0:
